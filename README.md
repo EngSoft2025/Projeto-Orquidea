@@ -10,7 +10,7 @@ O trabalho deverá ser feito em grupos de até 5 alunos. Os alunos de um mesmo g
 
 ### 1.2. Entrega
 
-A data de entrega final é dia DD/MM.
+A data de entrega final é dia 22/06. Apresentações nas aulas dos dias 25/06 e 27/06.
 
 ### 1.3. Plágio
 
