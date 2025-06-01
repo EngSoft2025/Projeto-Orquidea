@@ -1,9 +1,8 @@
-
 import { useState } from "react";
 import { Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { 
+import {
   Select,
   SelectContent,
   SelectItem,
@@ -11,24 +10,24 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 
-export default function SearchBar() {
+interface SearchBarProps {
+  onSearch?: (query: string, type: string) => void;
+}
+
+export default function SearchBar({ onSearch }: SearchBarProps) {
   const [searchQuery, setSearchQuery] = useState("");
   const [searchType, setSearchType] = useState("researcher");
-  
+
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
-    console.log("Buscar por:", searchQuery, "Tipo:", searchType);
-    // Implementaria a lógica de busca real aqui
+    onSearch?.(searchQuery, searchType);
   };
 
   return (
     <form onSubmit={handleSearch} className="w-full">
       <div className="flex flex-col md:flex-row gap-3">
         <div className="w-full md:w-[180px]">
-          <Select 
-            value={searchType} 
-            onValueChange={setSearchType}
-          >
+          <Select value={searchType} onValueChange={setSearchType}>
             <SelectTrigger className="bg-white dark:bg-gray-900">
               <SelectValue placeholder="Buscar por" />
             </SelectTrigger>
@@ -39,7 +38,7 @@ export default function SearchBar() {
             </SelectContent>
           </Select>
         </div>
-        
+
         <div className="relative flex-grow">
           <Input
             value={searchQuery}
@@ -49,7 +48,7 @@ export default function SearchBar() {
           />
           <Search className="absolute left-3 top-2.5 h-5 w-5 text-muted-foreground pointer-events-none" />
         </div>
-        
+
         <Button type="submit" className="h-10 px-8">
           Buscar
         </Button>

@@ -5,6 +5,8 @@ import ResearcherCard from "@/components/search/ResearcherCard";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import PublicationCard from "@/components/profile/PublicationCard";
 import Layout from "@/components/layout/Layout";
+import useSWR from "swr";
+import { fetchOrcidSearch } from "@/lib/orcid_query";
 
 // Mock data
 const researchers = [
@@ -127,7 +129,12 @@ const publications = [
 ];
 
 export default function Search() {
+  const [searchQuery, setSearchQuery] = useState("");
   const [searchTab, setSearchTab] = useState("researchers");
+
+  const onSearch = (query: string, type: string) => {
+    setSearchQuery(query);
+  };
 
   return (
     <Layout>
@@ -135,7 +142,7 @@ export default function Search() {
         <h1 className="text-3xl font-bold mb-6">Busca Acadêmica</h1>
 
         <div className="mb-8">
-          <SearchBar />
+          <SearchBar onSearch={onSearch} />
         </div>
 
         <div className="mb-6">
@@ -156,26 +163,7 @@ export default function Search() {
 
               <div className="lg:col-span-3">
                 <TabsContent value="researchers" className="mt-0">
-                  <div className="flex justify-between items-center mb-4">
-                    <p className="text-sm text-muted-foreground">
-                      Mostrando {researchers.length} resultados
-                    </p>
-                  </div>
-
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    {researchers.map((researcher) => (
-                      <ResearcherCard
-                        key={researcher.id}
-                        id={researcher.id}
-                        name={researcher.name}
-                        institution={researcher.institution}
-                        position={researcher.position}
-                        publicationsCount={researcher.publicationsCount}
-                        citationsCount={researcher.citationsCount}
-                        areas={researcher.areas}
-                      />
-                    ))}
-                  </div>
+                  <SearchResults searchQuery={searchQuery} />
                 </TabsContent>
 
                 <TabsContent value="publications" className="mt-0">
@@ -207,5 +195,43 @@ export default function Search() {
         </div>
       </div>
     </Layout>
+  );
+}
+
+function SearchResults({ searchQuery }: { searchQuery: string }) {
+  const {
+    data,
+    isLoading,
+    error: researchersError,
+  } = useSWR(`q=${searchQuery}`, () => fetchOrcidSearch(searchQuery));
+  if (!data || isLoading) return <div>Loading...</div>;
+  if (researchersError) {
+    return <div>Error loading researchers: {researchersError.message}</div>;
+  }
+  const researchers = data["expanded-result"];
+  console.log(researchers);
+  return (
+    <>
+      <div className="flex justify-between items-center mb-4">
+        <p className="text-sm text-muted-foreground">
+          Mostrando {researchers.length} resultados
+        </p>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {researchers.map((researcher) => (
+          <ResearcherCard
+            key={researcher["orcid-id"]}
+            id={researcher["orcid-id"]}
+            name={researcher["given-names"] ?? "Desconhecido"}
+            institution={researcher["institution-name"]?.[0] ?? "Desconhecido"}
+            position={"Desconhecido"}
+            publicationsCount={-1}
+            citationsCount={-1}
+            areas={["Desconhecido"]}
+          />
+        ))}
+      </div>
+    </>
   );
 }
