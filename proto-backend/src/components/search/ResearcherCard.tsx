@@ -4,73 +4,96 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 
-interface ResearcherCardProps {
-  id: string;
-  name: string;
-  institution: string;
-  position: string;
-  publicationsCount: number;
-  citationsCount: number;
-  areas: string[];
+// Interface para um item individual da busca ORCID, baseado na sua API
+interface OrcidExpandedResultItem {
+  "orcid-id": string;
+  "given-names": string | null;
+  "family-names": string | null;
+  "credit-name"?: string | null;
+  "institution-name"?: string[];
 }
 
-export default function ResearcherCard({
-  id,
-  name,
-  institution,
-  position,
-  publicationsCount,
-  citationsCount,
-  areas,
-}: ResearcherCardProps) {
+interface ResearcherCardProps {
+  researcherData?: OrcidExpandedResultItem;
+}
+
+export default function ResearcherCard({ researcherData }: ResearcherCardProps) {
+  if (!researcherData || typeof researcherData !== 'object' || !researcherData["orcid-id"]) {
+    // console.warn("ResearcherCard received invalid or missing researcherData:", researcherData);
+    return null;
+  }
+
+  const {
+    "orcid-id": id, // Este é o ORCID iD usado para a navegação e chave
+    "given-names": givenNames,
+    "family-names": familyNames,
+    "credit-name": creditName,
+    "institution-name": institutionNames,
+  } = researcherData;
+
+  let displayName = "Nome Desconhecido";
+  if (creditName) {
+    displayName = creditName;
+  } else if (givenNames || familyNames) {
+    displayName = `${givenNames || ""} ${familyNames || ""}`.trim();
+  }
+  if (!displayName.trim()) {
+      displayName = "Nome Desconhecido";
+  }
+
+  const institutions = institutionNames && institutionNames.length > 0 
+    ? institutionNames 
+    : ["Instituição não informada"];
+
   return (
-    <Card className="hover-card border border-border/50">
-      <CardContent className="p-5">
-        <div className="flex justify-between items-start">
-          <div>
+    <Card className="hover-card border border-border/50 flex flex-col h-full">
+      <CardContent className="p-5 flex flex-col flex-grow">
+        <div className="flex justify-between items-start mb-3">
+          <div className="flex-grow">
+            {/* Link para o perfil individual do pesquisador */}
             <Link
               href={`/profile/${id}`}
-              className="text-lg font-semibold hover:text-primary"
+              className="text-lg font-semibold hover:text-primary line-clamp-2"
+              title={displayName}
             >
-              {name}
+              {displayName}
             </Link>
-            <p className="text-sm text-muted-foreground mb-2">
-              {position} • {institution}
-            </p>
-            <div className="flex flex-wrap gap-1.5 mb-3">
-              {areas.map((area, index) => (
-                <Badge key={index} variant="secondary" className="text-xs">
-                  {area}
-                </Badge>
-              ))}
-            </div>
-            <div className="grid grid-cols-2 gap-4 mt-4">
-              <div>
-                <p className="text-sm text-muted-foreground">Publicações</p>
-                <p className="font-semibold">{publicationsCount}</p>
-              </div>
-              <div>
-                <p className="text-sm text-muted-foreground">Citações</p>
-                <p className="font-semibold">{citationsCount}</p>
-              </div>
-            </div>
           </div>
           <a
             href={`https://orcid.org/${id}`}
             target="_blank"
             rel="noopener noreferrer"
-            className="flex items-center text-xs text-muted-foreground hover:text-primary"
+            className="flex items-center text-xs text-muted-foreground hover:text-primary ml-2 flex-shrink-0"
+            title={`Ver perfil ORCID de ${displayName}`}
           >
             <ExternalLink className="h-3 w-3 mr-1" />
             ORCID
           </a>
         </div>
-        <div className="flex gap-2 mt-4">
-          <Button variant="outline" size="sm" className="w-full">
+
+        <div className="mb-4 flex-grow">
+          <p className="text-sm font-medium text-foreground mb-1">Instituições:</p>
+          {institutions.length > 0 && institutions[0] !== "Instituição não informada" ? (
+            <div className="flex flex-wrap gap-1.5 max-h-20 overflow-y-auto">
+              {institutions.map((inst, index) => (
+                <Badge key={index} variant="secondary" className="text-xs">
+                  {inst}
+                </Badge>
+              ))}
+            </div>
+          ) : (
+            <p className="text-xs text-muted-foreground">Instituição não informada</p>
+          )}
+        </div>
+        
+        <div className="flex gap-2 mt-auto pt-4 border-t border-border/50">
+          <Button variant="outline" size="sm" className="w-full text-xs">
             Adicionar ao Monitoramento
           </Button>
-          <Link href={`/profile/${id}`} className="w-full">
-            <Button size="sm" variant="default" className="w-full">
+          {/* O componente Link do Next.js envolve o botão "Ver Perfil" */}
+          {/* Ele usa o 'id' (ORCID iD) para construir o caminho para a página de perfil dinâmica */}
+          <Link href={`/profile/${id}`} className="w-full" passHref>
+            <Button as="a" size="sm" variant="default" className="w-full text-xs">
               Ver Perfil
             </Button>
           </Link>
