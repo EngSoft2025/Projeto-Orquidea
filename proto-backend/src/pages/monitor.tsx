@@ -1,5 +1,6 @@
-import { useState } from "react";
-import { Plus, Bell } from "lucide-react";
+import { useState, useEffect } from "react";
+import { useRouter } from "next/router"; // Para redirecionar para a página de login
+import { Plus, Bell, LogIn } from "lucide-react"; // Adicionado LogIn para o botão
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import MonitorCard from "@/components/monitor/MonitorCard";
@@ -7,8 +8,9 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import Layout from "@/components/layout/Layout";
+import { account } from "@/lib/appwrite"; // Importe a configuração do Appwrite
 
-// Mock data
+// Mock data (mantido como no seu original)
 const monitoredResearchers = [
   {
     id: "0000-0002-3456-7890",
@@ -85,9 +87,65 @@ const monitoredPublications = [
 ];
 
 export default function Monitor() {
+  const [currentUser, setCurrentUser] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const router = useRouter();
+
+  // Estados específicos da página de monitoramento (mantidos)
   const [activeTab, setActiveTab] = useState("researchers");
   const [globalNotifications, setGlobalNotifications] = useState(true);
+  // Adicione aqui outros estados para os switches de notificação se precisar controlá-los
+  const [notifyNewPublications, setNotifyNewPublications] = useState(true);
+  const [notifyNewCitations, setNotifyNewCitations] = useState(true);
+  const [notifyProfileUpdates, setNotifyProfileUpdates] = useState(true);
 
+
+  useEffect(() => {
+    const checkSession = async () => {
+      setIsLoading(true);
+      try {
+        const user = await account.get();
+        setCurrentUser(user);
+      } catch (error) {
+        setCurrentUser(null); // Nenhum usuário logado
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    checkSession();
+  }, []);
+
+  if (isLoading) {
+    return (
+      <Layout>
+        <div className="container mx-auto flex h-[calc(100vh-150px)] items-center justify-center px-4 py-8 text-center">
+          {/* Pode adicionar um spinner aqui */}
+          <p className="text-lg">Carregando dados de monitoramento...</p>
+        </div>
+      </Layout>
+    );
+  }
+
+  if (!currentUser) {
+    return (
+      <Layout>
+        <div className="container mx-auto flex h-[calc(100vh-150px)] flex-col items-center justify-center px-4 py-8 text-center">
+          <Bell className="h-16 w-16 text-primary mb-6" />
+          <h2 className="text-2xl font-semibold mb-3">Acesso Restrito</h2>
+          <p className="text-muted-foreground mb-6 max-w-md">
+            Você precisa estar logado para acessar seus dados e configurações de
+            monitoramento.
+          </p>
+          <Button onClick={() => router.push('/auth')} size="lg">
+            <LogIn className="mr-2 h-5 w-5" />
+            Fazer Login ou Criar Conta
+          </Button>
+        </div>
+      </Layout>
+    );
+  }
+
+  // Se o usuário estiver logado, renderiza o conteúdo normal da página
   return (
     <Layout>
       <div className="container mx-auto px-4 py-8">
@@ -129,21 +187,33 @@ export default function Monitor() {
                     <Bell className="h-5 w-5" />
                     <span>Novas Publicações</span>
                   </div>
-                  <Switch defaultChecked />
+                  <Switch 
+                    checked={notifyNewPublications} 
+                    onCheckedChange={setNotifyNewPublications}
+                    disabled={!globalNotifications} // Desabilita se global estiver desativado
+                  />
                 </div>
                 <div className="flex items-center justify-between p-4 bg-secondary/50 rounded">
                   <div className="flex items-center gap-2">
                     <Bell className="h-5 w-5" />
                     <span>Novas Citações</span>
                   </div>
-                  <Switch defaultChecked />
+                  <Switch 
+                    checked={notifyNewCitations}
+                    onCheckedChange={setNotifyNewCitations}
+                    disabled={!globalNotifications}
+                  />
                 </div>
                 <div className="flex items-center justify-between p-4 bg-secondary/50 rounded">
                   <div className="flex items-center gap-2">
                     <Bell className="h-5 w-5" />
                     <span>Atualizações de Perfil</span>
                   </div>
-                  <Switch defaultChecked />
+                  <Switch 
+                    checked={notifyProfileUpdates}
+                    onCheckedChange={setNotifyProfileUpdates}
+                    disabled={!globalNotifications}
+                  />
                 </div>
               </div>
 
@@ -171,8 +241,9 @@ export default function Monitor() {
                     institution={researcher.institution}
                     position={researcher.position}
                     lastUpdate={researcher.lastUpdate}
-                    notificationsEnabled={researcher.notificationsEnabled}
+                    notificationsEnabled={researcher.notificationsEnabled && globalNotifications} // Considera notificação global
                     recentChanges={researcher.recentChanges}
+                    // onNotificationToggle={(id, enabled) => { /* Lógica para atualizar estado individual */ }}
                   />
                 ))}
               </div>
@@ -231,10 +302,13 @@ export default function Monitor() {
 
                         <div className="flex items-center">
                           <Switch
-                            checked={publication.notificationsEnabled}
+                            checked={publication.notificationsEnabled && globalNotifications} // Considera notificação global
+                            // onCheckedChange={(enabled) => { /* Lógica para atualizar estado individual */ }}
                             className="mr-2"
+                            disabled={!globalNotifications}
                           />
-                          <Button variant="ghost" size="icon">
+                          {/* O botão Bell aqui pode ser para configurações mais detalhadas ou um link */}
+                          <Button variant="ghost" size="icon" disabled={!globalNotifications}>
                             <Bell className="h-4 w-4" />
                           </Button>
                         </div>

@@ -1,41 +1,125 @@
 // Sua página de autenticação, ex: pages/auth.js ou o AuthPage.js que você tinha
 import Link from "next/link";
+import { useRouter } from 'next/router';
+import { useEffect, useState } from 'react';
+
+// SDK do Appwrite e serviço Avatars
+import { account, client } from '@/lib/appwrite'; // AJUSTE O CAMINHO para seu arquivo de config do Appwrite
+import { Avatars } from 'appwrite';
+
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"; // Ajuste o caminho se necessário
 import { Button } from "@/components/ui/button"; // Ajuste o caminho se necessário
 import { useToast } from "@/hooks/use-toast"; // Se você ainda quiser usar toasts
-import { useSession, signIn, signOut } from "next-auth/react";
-import { useRouter } from 'next/router'; // Para redirecionamento pós-login, se necessário
 
 // Se você estiver usando o Layout na página de autenticação, importe-o
 // import Layout from "@/components/layout/Layout";
 
 export default function AuthPage() {
-  const { data: session, status } = useSession(); // status pode ser 'loading', 'authenticated', 'unauthenticated'
+  const [currentUser, setCurrentUser] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
   const { toast } = useToast();
   const router = useRouter();
+  const avatars = new Avatars(client); // Inicializa o serviço Avatars
 
-  const handleGoogleSignIn = () => {
-    signIn("google", { callbackUrl: "/" }); // Redireciona para a home "/" após o login bem-sucedido
-    // Você pode mudar callbackUrl para outra página, ex: "/dashboard"
+  // Efeito para verificar a sessão do Appwrite ao carregar a página
+  useEffect(() => {
+    const checkSession = async () => {
+      setIsLoading(true);
+      try {
+        const user = await account.get();
+        setCurrentUser(user);
+      } catch (error) {
+        setCurrentUser(null);
+        // Não é necessariamente um erro se não houver sessão, apenas usuário não logado
+        // console.info("Nenhuma sessão ativa do Appwrite encontrada.");
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    checkSession();
+  }, []);
+
+  // Verificar se houve erro no callback do OAuth vindo do Appwrite
+  useEffect(() => {
+    if (router.query.error) {
+      toast({
+        title: "Erro de Autenticação",
+        description: "Ocorreu um problema durante o login com o Google. Tente novamente.",
+        variant: "destructive",
+      });
+      // Limpar o query param de erro da URL para não mostrar o toast novamente em reloads
+      router.replace('/auth', undefined, { shallow: true });
+    }
+  }, [router.query, router, toast]);
+
+
+  const handleGoogleSignIn = async () => {
+    try {
+      // URL para onde o Appwrite irá redirecionar após o login bem-sucedido (via servidor Appwrite)
+      // Esta deve ser uma página na sua aplicação Next.js
+      const successUrl = `${window.location.origin}/auth`; // Volta para esta página de autenticação
+      const failureUrl = `${window.location.origin}/auth?error=oauth_failed`; // Volta para esta página com um parâmetro de erro
+
+      await account.createOAuth2Session('google', successUrl, failureUrl);
+      // O Appwrite irá redirecionar o usuário para o Google,
+      // depois o Google para o servidor Appwrite,
+      // e então o servidor Appwrite para a successUrl ou failureUrl.
+      // A página será recarregada, e o useEffect acima pegará a sessão.
+    } catch (error) {
+      console.error("Falha ao iniciar o login com Google via Appwrite:", error);
+      toast({
+        title: "Erro ao Iniciar Login",
+        description: "Não foi possível iniciar o processo de login com o Google.",
+        variant: "destructive",
+      });
+    }
   };
 
-  const handleSignOut = () => {
-    signOut({ callbackUrl: "/auth" }); // Redireciona para a página de autenticação após o logout
+  const handleSignOut = async () => {
+    try {
+      await account.deleteSession('current');
+      setCurrentUser(null);
+      toast({
+        title: "Logout Realizado",
+        description: "Você foi desconectado com sucesso.",
+      });
+      // Opcional: redirecionar se esta página só deve ser vista por usuários logados em algum estado
+      // router.push('/');
+    } catch (error) {
+      console.error("Falha ao fazer logout com Appwrite:", error);
+      toast({
+        title: "Erro no Logout",
+        description: "Não foi possível realizar o logout.",
+        variant: "destructive",
+      });
+    }
   };
 
-  if (status === "loading") {
+  if (isLoading) {
     return (
       // <Layout> // Se estiver usando Layout
         <div className="container flex flex-col items-center justify-center min-h-screen px-4 py-12">
           <p className="text-lg">Carregando sessão...</p>
           {/* Você pode adicionar um spinner aqui */}
+          {/* Ex: <svg className="animate-spin h-8 w-8 text-primary mt-4" ... /> */}
         </div>
       // </Layout>
     );
   }
 
-  // Se o usuário já estiver autenticado
-  if (session) {
+  // Se o usuário já estiver autenticado via Appwrite
+  if (currentUser) {
+    // Obter avatar do Gravatar (ou outro, se configurado no Appwrite)
+    let userAvatarUrl = null;
+    try {
+        // Se o email estiver disponível, tentamos pegar o Gravatar
+        if (currentUser.email) {
+            userAvatarUrl = avatars.getGravatar(currentUser.email, 96, 'mp').toString(); // 96px, 'mp' como fallback
+        }
+    } catch (e) {
+        console.warn("Não foi possível gerar URL do Gravatar:", e);
+    }
+
     return (
       // <Layout>
         <div className="container flex flex-col items-center justify-center min-h-screen px-4 py-12 sm:max-w-md mx-auto">
@@ -44,15 +128,15 @@ export default function AuthPage() {
               <span className="text-primary font-bold text-3xl">Orquídea</span>
             </Link>
             <h1 className="text-2xl font-bold">Bem-vindo(a) de volta!</h1>
-            {session.user?.image && (
+            {userAvatarUrl && ( // Verifica se a URL do avatar foi obtida
                 <img
-                    src={session.user.image}
-                    alt={`Foto de ${session.user.name || 'usuário'}`}
-                    className="w-24 h-24 rounded-full mx-auto my-4 border-2 border-primary"
+                    src={userAvatarUrl}
+                    alt={`Foto de ${currentUser.name || 'usuário'}`}
+                    className="w-24 h-24 rounded-full mx-auto my-4 border-2 border-primary bg-gray-200" // Adicionado bg-gray-200 para placeholder visual
                 />
             )}
             <p className="text-muted-foreground mt-2">
-              Você está conectado como <span className="font-semibold">{session.user?.name || session.user?.email}</span>.
+              Você está conectado como <span className="font-semibold">{currentUser.name || currentUser.email}</span>.
             </p>
           </div>
           <Card className="w-full">
