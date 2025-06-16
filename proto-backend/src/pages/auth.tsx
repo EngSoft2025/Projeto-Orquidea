@@ -11,35 +11,73 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Button } from "@/components/ui/button"; // Ajuste o caminho se necessário
 import { useToast } from "@/hooks/use-toast"; // Se você ainda quiser usar toasts
 
-// Se você estiver usando o Layout na página de autenticação, importe-o
-// import Layout from "@/components/layout/Layout";
-
 export default function AuthPage() {
   const [currentUser, setCurrentUser] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const { toast } = useToast();
   const router = useRouter();
-  const avatars = new Avatars(client); // Inicializa o serviço Avatars
+  const avatars = new Avatars(client);
 
-  // Efeito para verificar a sessão do Appwrite ao carregar a página
+  // NOVO: Função para sincronizar o usuário com seu banco de dados local via API
+  const syncUserWithDb = async (user) => {
+    try {
+      const response = await fetch('/api/sync-user', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          name: user.name,
+          email: user.email,
+        }),
+      });
+
+      if (!response.ok) {
+        // Se a resposta da API não for OK, lança um erro para ser pego pelo catch
+        throw new Error('Falha na resposta da API de sincronização.');
+      }
+      
+      const data = await response.json();
+      console.log('Resposta da API de sincronização:', data.message);
+
+    } catch (error) {
+      console.error("Falha ao sincronizar usuário com o banco de dados local:", error);
+      toast({
+        title: "Erro de Sincronização",
+        description: "Não foi possível registrar seus dados locais. Tente recarregar a página.",
+        variant: "destructive",
+      });
+    }
+  };
+
+
+  // ALTERADO: useEffect para verificar a sessão e sincronizar o usuário
   useEffect(() => {
-    const checkSession = async () => {
+    const checkSessionAndSyncUser = async () => {
       setIsLoading(true);
       try {
         const user = await account.get();
         setCurrentUser(user);
+        // Após confirmar a sessão do Appwrite, chama a função para sincronizar com o SQLite
+        await syncUserWithDb(user);
       } catch (error) {
         setCurrentUser(null);
-        // Não é necessariamente um erro se não houver sessão, apenas usuário não logado
-        // console.info("Nenhuma sessão ativa do Appwrite encontrada.");
       } finally {
         setIsLoading(false);
       }
     };
-    checkSession();
-  }, []);
+    checkSessionAndSyncUser();
+  }, []); // O array de dependências vazio garante que isso rode apenas uma vez na montagem da página
 
-  // Verificar se houve erro no callback do OAuth vindo do Appwrite
+  // O resto do seu arquivo continua igual...
+  // ... (handleGoogleSignIn, handleSignOut, e toda a lógica de renderização JSX) ...
+  
+  // Nenhuma mudança é necessária no restante do seu código JSX ou nas outras funções.
+  // Cole o código acima no início do seu componente AuthPage, substituindo
+  // a declaração de estados e o primeiro useEffect.
+
+  // --- O restante do seu código original a partir daqui ---
+
   useEffect(() => {
     if (router.query.error) {
       toast({
@@ -47,24 +85,15 @@ export default function AuthPage() {
         description: "Ocorreu um problema durante o login com o Google. Tente novamente.",
         variant: "destructive",
       });
-      // Limpar o query param de erro da URL para não mostrar o toast novamente em reloads
       router.replace('/auth', undefined, { shallow: true });
     }
   }, [router.query, router, toast]);
 
-
   const handleGoogleSignIn = async () => {
     try {
-      // URL para onde o Appwrite irá redirecionar após o login bem-sucedido (via servidor Appwrite)
-      // Esta deve ser uma página na sua aplicação Next.js
-      const successUrl = `${window.location.origin}/auth`; // Volta para esta página de autenticação
-      const failureUrl = `${window.location.origin}/auth?error=oauth_failed`; // Volta para esta página com um parâmetro de erro
-
+      const successUrl = `${window.location.origin}/auth`;
+      const failureUrl = `${window.location.origin}/auth?error=oauth_failed`;
       await account.createOAuth2Session('google', successUrl, failureUrl);
-      // O Appwrite irá redirecionar o usuário para o Google,
-      // depois o Google para o servidor Appwrite,
-      // e então o servidor Appwrite para a successUrl ou failureUrl.
-      // A página será recarregada, e o useEffect acima pegará a sessão.
     } catch (error) {
       console.error("Falha ao iniciar o login com Google via Appwrite:", error);
       toast({
@@ -83,8 +112,6 @@ export default function AuthPage() {
         title: "Logout Realizado",
         description: "Você foi desconectado com sucesso.",
       });
-      // Opcional: redirecionar se esta página só deve ser vista por usuários logados em algum estado
-      // router.push('/');
     } catch (error) {
       console.error("Falha ao fazer logout com Appwrite:", error);
       toast({
@@ -97,42 +124,35 @@ export default function AuthPage() {
 
   if (isLoading) {
     return (
-      // <Layout> // Se estiver usando Layout
-        <div className="container flex flex-col items-center justify-center min-h-screen px-4 py-12">
-          <p className="text-lg">Carregando sessão...</p>
-          {/* Você pode adicionar um spinner aqui */}
-          {/* Ex: <svg className="animate-spin h-8 w-8 text-primary mt-4" ... /> */}
-        </div>
-      // </Layout>
+      <div className="container flex flex-col items-center justify-center min-h-screen px-4 py-12">
+        <p className="text-lg">Carregando sessão...</p>
+      </div>
     );
   }
 
-  // Se o usuário já estiver autenticado via Appwrite
   if (currentUser) {
-    // Obter avatar do Gravatar (ou outro, se configurado no Appwrite)
     let userAvatarUrl = null;
     try {
-        // Se o email estiver disponível, tentamos pegar o Gravatar
         if (currentUser.email) {
-            userAvatarUrl = avatars.getGravatar(currentUser.email, 96, 'mp').toString(); // 96px, 'mp' como fallback
+            userAvatarUrl = avatars.getGravatar(currentUser.email, 96, 'mp').toString();
         }
     } catch (e) {
         console.warn("Não foi possível gerar URL do Gravatar:", e);
     }
 
     return (
-      // <Layout>
         <div className="container flex flex-col items-center justify-center min-h-screen px-4 py-12 sm:max-w-md mx-auto">
+          {/* ... JSX para usuário logado ... */}
           <div className="text-center mb-8">
             <Link href="/" className="flex-shrink-0 inline-flex items-center mb-4">
               <span className="text-primary font-bold text-3xl">Orquídea</span>
             </Link>
             <h1 className="text-2xl font-bold">Bem-vindo(a) de volta!</h1>
-            {userAvatarUrl && ( // Verifica se a URL do avatar foi obtida
+            {userAvatarUrl && (
                 <img
                     src={userAvatarUrl}
                     alt={`Foto de ${currentUser.name || 'usuário'}`}
-                    className="w-24 h-24 rounded-full mx-auto my-4 border-2 border-primary bg-gray-200" // Adicionado bg-gray-200 para placeholder visual
+                    className="w-24 h-24 rounded-full mx-auto my-4 border-2 border-primary bg-gray-200"
                 />
             )}
             <p className="text-muted-foreground mt-2">
@@ -156,14 +176,12 @@ export default function AuthPage() {
             </CardFooter>
           </Card>
         </div>
-      // </Layout>
     );
   }
-
-  // Se o usuário não estiver autenticado, mostre o botão de login
+  
   return (
-    // <Layout>
-      <div className="container flex flex-col items-center justify-center min-h-screen px-4 py-12 sm:max-w-md mx-auto">
+    <div className="container flex flex-col items-center justify-center min-h-screen px-4 py-12 sm:max-w-md mx-auto">
+        {/* ... JSX para usuário não logado ... */}
         <div className="text-center mb-8">
           <Link href="/" className="flex-shrink-0 inline-flex items-center mb-4">
             <span className="text-primary font-bold text-3xl">Orquídea</span>
@@ -173,7 +191,6 @@ export default function AuthPage() {
             Acesse sua conta utilizando o Google.
           </p>
         </div>
-
         <Card className="w-full">
           <CardHeader className="text-center">
             <CardTitle>Login / Criar Conta</CardTitle>
@@ -182,7 +199,6 @@ export default function AuthPage() {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            {/* Conteúdo do card pode ser removido se for apenas o botão no footer */}
           </CardContent>
           <CardFooter className="flex flex-col gap-4">
             <Button
@@ -190,34 +206,21 @@ export default function AuthPage() {
               variant="outline"
               className="w-full flex items-center justify-center gap-2"
             >
-              <svg // Ícone do Google
+              <svg
                 width="18"
                 height="18"
                 xmlns="http://www.w3.org/2000/svg"
                 viewBox="0 0 48 48"
               >
-                <path
-                  fill="#FFC107"
-                  d="M43.611,20.083H42V20H24v8h11.303c-1.649,4.657-6.08,8-11.303,8c-6.627,0-12-5.373-12-12c0-6.627,5.373-12,12-12c3.059,0,5.842,1.154,7.961,3.039l5.657-5.657C34.046,6.053,29.268,4,24,4C12.955,4,4,12.955,4,24c0,11.045,8.955,20,20,20c11.045,0,20-8.955,20-20C44,22.659,43.862,21.35,43.611,20.083z"
-                />
-                <path
-                  fill="#FF3D00"
-                  d="M6.306,14.691l6.571,4.819C14.655,15.108,18.961,12,24,12c3.059,0,5.842,1.154,7.961,3.039l5.657-5.657C34.046,6.053,29.268,4,24,4C16.318,4,9.656,8.337,6.306,14.691z"
-                />
-                <path
-                  fill="#4CAF50"
-                  d="M24,44c5.166,0,9.86-1.977,13.409-5.192l-6.19-5.238C29.211,35.091,26.715,36,24,36c-5.202,0-9.619-3.317-11.283-7.946l-6.522,5.025C9.505,39.556,16.227,44,24,44z"
-                />
-                <path
-                  fill="#1976D2"
-                  d="M43.611,20.083H42V20H24v8h11.303c-0.792,2.237-2.231,4.166-4.087,5.571c0.001-0.001,0.002-0.001,0.003-0.002l6.19,5.238C36.971,39.205,44,34,44,24C44,22.659,43.862,21.35,43.611,20.083z"
-                />
+                  <path fill="#FFC107" d="M43.611,20.083H42V20H24v8h11.303c-1.649,4.657-6.08,8-11.303,8c-6.627,0-12-5.373-12-12c0-6.627,5.373-12,12-12c3.059,0,5.842,1.154,7.961,3.039l5.657-5.657C34.046,6.053,29.268,4,24,4C12.955,4,4,12.955,4,24c0,11.045,8.955,20,20,20c11.045,0,20-8.955,20-20C44,22.659,43.862,21.35,43.611,20.083z"/>
+                  <path fill="#FF3D00" d="M6.306,14.691l6.571,4.819C14.655,15.108,18.961,12,24,12c3.059,0,5.842,1.154,7.961,3.039l5.657-5.657C34.046,6.053,29.268,4,24,4C16.318,4,9.656,8.337,6.306,14.691z"/>
+                  <path fill="#4CAF50" d="M24,44c5.166,0,9.86-1.977,13.409-5.192l-6.19-5.238C29.211,35.091,26.715,36,24,36c-5.202,0-9.619-3.317-11.283-7.946l-6.522,5.025C9.505,39.556,16.227,44,24,44z"/>
+                  <path fill="#1976D2" d="M43.611,20.083H42V20H24v8h11.303c-0.792,2.237-2.231,4.166-4.087,5.571c0.001-0.001,0.002-0.001,0.003-0.002l6.19,5.238C36.971,39.205,44,34,44,24C44,22.659,43.862,21.35,43.611,20.083z"/>
               </svg>
               Continuar com Google
             </Button>
           </CardFooter>
         </Card>
-      </div>
-    // </Layout>
+    </div>
   );
 }

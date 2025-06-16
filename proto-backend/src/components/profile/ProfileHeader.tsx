@@ -1,18 +1,23 @@
-import { User, MapPin } from "lucide-react"; // BookOpen e Star removidos
+import { User, MapPin, Monitor, Check, Loader2, ExternalLink } from "lucide-react"; // Adicionados Monitor, Check, Loader2, ExternalLink
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 
-// Props de contagem (publicationsCount, citationsCount, hIndex) foram removidas
+// --- ALTERADO: Interface de Props atualizada ---
 interface ProfileHeaderProps {
-  id: string; // Mantido para uso futuro ou identificação, se necessário
+  id: string;
   name: string;
   institution: string;
   department?: string;
   position: string;
-  orcidId: string; // Mantido para o link do perfil ORCID
+  orcidId: string;
   areas: string[];
   photoUrl?: string;
+  // --- ADICIONADO: Props para controlar o botão de monitoramento ---
+  isLoggedIn: boolean; // Para saber se o usuário está logado
+  isMonitoringLoading: boolean; // Para o estado de "carregando" do botão
+  isAlreadyMonitored: boolean; // Para saber se já está monitorando
+  onMonitorClick: () => void; // A função a ser chamada ao clicar no botão
 }
 
 export default function ProfileHeader({
@@ -24,6 +29,11 @@ export default function ProfileHeader({
   orcidId,
   areas,
   photoUrl,
+  // --- ADICIONADO: Desestruturação das novas props ---
+  isLoggedIn,
+  isMonitoringLoading,
+  isAlreadyMonitored,
+  onMonitorClick,
 }: ProfileHeaderProps) {
   return (
     <div className="bg-secondary p-6 rounded-lg mb-8">
@@ -60,10 +70,26 @@ export default function ProfileHeader({
             </div>
           )}
           
-          {/* Seção do grid com os cards de Publicações, Citações e H-index foi REMOVIDA */}
-          
-          <div className="flex flex-col md:flex-row gap-3 mt-4"> {/* Adicionado mt-4 para espaçamento se a grid de métricas for removida */}
-            <Button className="flex-1">Adicionar ao Monitoramento</Button>
+          <div className="flex flex-col sm:flex-row gap-3 mt-4">
+            
+            {/* --- ALTERADO: Lógica do botão de monitoramento --- */}
+            {isLoggedIn && (
+              <Button 
+                onClick={onMonitorClick} 
+                disabled={isMonitoringLoading || isAlreadyMonitored}
+                className="flex-1"
+              >
+                {isMonitoringLoading ? (
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                ) : isAlreadyMonitored ? (
+                  <Check className="mr-2 h-4 w-4" />
+                ) : (
+                  <Monitor className="mr-2 h-4 w-4" />
+                )}
+                {isMonitoringLoading ? "Processando..." : isAlreadyMonitored ? "Monitorando" : "Adicionar ao Monitoramento"}
+              </Button>
+            )}
+
             <Button variant="outline" className="flex-1" asChild>
               <a 
                 href={`https://orcid.org/${orcidId}`}
@@ -72,8 +98,7 @@ export default function ProfileHeader({
                 className="flex items-center justify-center w-full"
               >
                 Perfil ORCID 
-                {/* Ícone ExternalLink poderia ser adicionado aqui se desejado, como no ResearcherCard */}
-                {/* <ExternalLink className="h-4 w-4 ml-2" /> */}
+                <ExternalLink className="h-4 w-4 ml-2" />
               </a>
             </Button>
           </div>
