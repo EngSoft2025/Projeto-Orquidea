@@ -1,14 +1,16 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Menu, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "@/components/theme-toggle";
-import { LanguageSwitcher } from "@/components/language-switcher";
 import { cn } from "@/lib/utils";
 import Link from "next/link";
 import { useRouter } from "next/router";
+import { account } from "@/lib/appwrite";
 
-export default function Navbar() {
+export default function Navbar({isLoggedIn}) {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [currentUser, setCurrentUser] = useState(null);
+  const [isSessionLoading, setIsSessionLoading] = useState(true);
   const router = useRouter();
 
   const navigation = [
@@ -16,8 +18,16 @@ export default function Navbar() {
     { name: "Busca", href: "/search" },
     { name: "Monitoramento", href: "/monitor" },
     { name: "Visualizações", href: "/visualizations" },
-  ];
+  ];  
 
+  // useEffect para verificar a sessão do Appwrite
+  useEffect(() => {
+    setIsSessionLoading(true);
+    account.get()
+      .then(setCurrentUser)
+      .catch(() => setCurrentUser(null))
+      .finally(() => setIsSessionLoading(false));
+  }, []);
   return (
     <nav className="bg-background border-b border-border sticky top-0 z-10">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
@@ -44,9 +54,8 @@ export default function Navbar() {
                 </Link>
               ))}
               <ThemeToggle />
-              <LanguageSwitcher />
               <Link href="/auth">
-                <Button>Login / Registro</Button>
+                <Button>{!isLoggedIn ? "Login / Registro" : "Autenticado"}</Button>
               </Link>
             </div>
           </div>
