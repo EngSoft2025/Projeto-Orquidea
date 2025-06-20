@@ -100,16 +100,6 @@ export default function GraphCard({ title, type, data, className }: GraphCardPro
       <CardHeader className="pb-2">
         <div className="flex justify-between items-center">
           <CardTitle className="text-lg">{title}</CardTitle>
-          <Select defaultValue="all">
-            <SelectTrigger className="w-[140px] h-8">
-              <SelectValue placeholder="Período" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Todo período</SelectItem>
-              <SelectItem value="year">Último ano</SelectItem>
-              <SelectItem value="month">Último mês</SelectItem>
-            </SelectContent>
-          </Select>
         </div>
       </CardHeader>
       <CardContent>
