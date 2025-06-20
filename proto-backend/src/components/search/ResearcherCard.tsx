@@ -18,6 +18,7 @@ interface ResearcherCardProps {
 }
 
 export default function ResearcherCard({ researcherData }: ResearcherCardProps) {
+
   if (!researcherData || typeof researcherData !== 'object' || !researcherData["orcid-id"]) {
     // console.warn("ResearcherCard received invalid or missing researcherData:", researcherData);
     return null;
@@ -87,9 +88,6 @@ export default function ResearcherCard({ researcherData }: ResearcherCardProps) 
         </div>
         
         <div className="flex gap-2 mt-auto pt-4 border-t border-border/50">
-          <Button variant="outline" size="sm" className="w-full text-xs">
-            Adicionar ao Monitoramento
-          </Button>
           {/* O componente Link do Next.js envolve o botão "Ver Perfil" */}
           {/* Ele usa o 'id' (ORCID iD) para construir o caminho para a página de perfil dinâmica */}
           <Link href={`/profile/${id}`} className="w-full" passHref>
