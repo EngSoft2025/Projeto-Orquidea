@@ -1,5 +1,6 @@
 import { Models } from "appwrite";
 import { useState, useEffect } from "react";
+import { Button } from "./ui/button";
 
 function urlBase64ToUint8Array(base64String: string) {
   const padding = "=".repeat((4 - (base64String.length % 4)) % 4);
@@ -36,7 +37,9 @@ interface PushNotificationManagerProps {
   currentUser: Models.User<Models.Preferences> | null;
 }
 
-export function PushNotificationManager(props: PushNotificationManagerProps) {
+export function PushNotificationManager({
+  currentUser,
+}: PushNotificationManagerProps) {
   const [isSupported, setIsSupported] = useState(false);
   const [subscription, setSubscription] = useState<PushSubscription | null>(
     null
@@ -61,7 +64,7 @@ export function PushNotificationManager(props: PushNotificationManagerProps) {
   }
 
   async function subscribeToPush() {
-    const email = props.currentUser?.email;
+    const email = currentUser?.email;
     if (!email) {
       console.error(
         "User email is required to subscribe to push notifications."
@@ -83,7 +86,7 @@ export function PushNotificationManager(props: PushNotificationManagerProps) {
   async function unsubscribeFromPush() {
     await subscription?.unsubscribe();
     setSubscription(null);
-    const email = props.currentUser?.email;
+    const email = currentUser?.email;
     if (!email) {
       console.error(
         "User email is required to unsubscribe from push notifications."
@@ -99,24 +102,15 @@ export function PushNotificationManager(props: PushNotificationManagerProps) {
 
   return (
     <div>
-      <h3>Push Notifications</h3>
-      {subscription ? (
-        <>
-          <p>You are subscribed to push notifications.</p>
-          <button onClick={unsubscribeFromPush}>Unsubscribe</button>
-          <input
-            type="text"
-            placeholder="Enter notification message"
-            value={message}
-            onChange={(e) => setMessage(e.target.value)}
-          />
-        </>
-      ) : (
-        <>
-          <p>You are not subscribed to push notifications.</p>
-          <button onClick={subscribeToPush}>Subscribe</button>
-        </>
-      )}
+      {currentUser && isSupported ? (
+        subscription ? (
+          <Button onClick={unsubscribeFromPush}>
+            Cancelar notificações push
+          </Button>
+        ) : (
+          <Button onClick={subscribeToPush}>Assinar notificações push</Button>
+        )
+      ) : null}
     </div>
   );
 }

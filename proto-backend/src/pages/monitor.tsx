@@ -9,6 +9,7 @@ import Layout from "@/components/layout/Layout";
 import { account } from "@/lib/appwrite";
 import { useToast } from "@/hooks/use-toast"; // Importe o useToast
 import { Models } from "appwrite";
+import { PushNotificationManager } from "@/components/push-notification-manager";
 
 export default function Monitor() {
   const [currentUser, setCurrentUser] = useState<Models.User<Models.Preferences> | null>(null);
@@ -99,6 +100,8 @@ export default function Monitor() {
         <div className="flex items-center justify-between gap-4 mb-8">
           <h1 className="text-3xl font-bold">Pesquisadores Monitorados</h1>
         </div>
+
+        <PushNotificationManager currentUser={currentUser} />
 
         {isDataLoading ? (
           <div className="text-center py-12"><p className="text-lg">Buscando seus pesquisadores...</p></div>
