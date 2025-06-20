@@ -10,19 +10,10 @@ webpush.setVapidDetails(
 export async function sendPushNotification(
   subscription: webpush.PushSubscription,
   researcherName: string,
-  newPublications: OrcidWorkSummary[]
+  newPublicationCount: number
 ) {
   try {
-    const publicationTitles = newPublications
-      .map((p) => ` - ${p.title?.title?.value}`)
-      .join("\n");
-
     const title = `Novas publicações de ${researcherName}`;
-    const body = [
-      `Olá!`,
-      `Detectamos ${newPublications.length} nova(s) publicação(ões) para o pesquisador ${researcherName}, que você está monitorando:`,
-      publicationTitles,
-    ].join("\n");
 
     console.log(
       `Notificação push enviada com sucesso para ${subscription.endpoint}.`
@@ -32,7 +23,6 @@ export async function sendPushNotification(
       subscription,
       JSON.stringify({
         title,
-        body,
         tag: `researcher-${researcherName}`,
       })
     );
