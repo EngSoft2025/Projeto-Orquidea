@@ -8,9 +8,10 @@ import MonitorCard from "@/components/monitor/MonitorCard";
 import Layout from "@/components/layout/Layout";
 import { account } from "@/lib/appwrite";
 import { useToast } from "@/hooks/use-toast"; // Importe o useToast
+import { Models } from "appwrite";
 
 export default function Monitor() {
-  const [currentUser, setCurrentUser] = useState(null);
+  const [currentUser, setCurrentUser] = useState<Models.User<Models.Preferences> | null>(null);
   const [isSessionLoading, setIsSessionLoading] = useState(true);
   const [monitoredData, setMonitoredData] = useState([]);
   const [isDataLoading, setIsDataLoading] = useState(true);

@@ -5,7 +5,7 @@ import { useEffect, useState } from 'react';
 
 // SDK do Appwrite e serviço Avatars
 import { account, client } from '@/lib/appwrite'; // AJUSTE O CAMINHO para seu arquivo de config do Appwrite
-import { Avatars } from 'appwrite';
+import { Avatars, OAuthProvider } from 'appwrite';
 
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"; // Ajuste o caminho se necessário
 import { Button } from "@/components/ui/button"; // Ajuste o caminho se necessário
@@ -93,7 +93,7 @@ export default function AuthPage() {
     try {
       const successUrl = `${window.location.origin}/auth`;
       const failureUrl = `${window.location.origin}/auth?error=oauth_failed`;
-      await account.createOAuth2Session('google', successUrl, failureUrl);
+      await account.createOAuth2Session(OAuthProvider.Google, successUrl, failureUrl);
     } catch (error) {
       console.error("Falha ao iniciar o login com Google via Appwrite:", error);
       toast({

@@ -3,6 +3,7 @@ import crypto from 'crypto';
 import Database from 'better-sqlite3';
 import { fetchOrcidProfile } from './profile_info_query';
 import { sendUpdateEmail } from './email';
+import { sendPushNotification } from './webpush';
 
 const dbPath = path.join(process.cwd(), 'src', 'database', 'orquidea.db');
 
@@ -105,7 +106,7 @@ export async function checkAllResearchersForUpdates() {
 
                         db.prepare('UPDATE Researchers SET hash_trabalhos = ? WHERE orcid_id = ?').run(newHash, researcher.orcid_id);
                         const usersToNotify = db.prepare(`SELECT U.email FROM Users U JOIN UserMonitorsResearcher UMR ON U.id = UMR.user_id WHERE UMR.researcher_orcid_id = ?`).all(researcher.orcid_id);
-                        
+
                         if(usersToNotify.length > 0){
                             console.log(`  -> Notificando ${usersToNotify.length} usuário(s)...`);
                             for (const user of usersToNotify) {
@@ -113,6 +114,21 @@ export async function checkAllResearchersForUpdates() {
                             }
                         }
 
+                        const subscriptionsToNotify = db.prepare(`
+                            SELECT DISTINCT subscription_json FROM 
+                                Users U 
+                                JOIN UserMonitorsResearcher UMR 
+                                ON U.id = UMR.user_id
+                                JOIN UserPushSubscriptions UPS
+                                ON U.id = UPS.user_id
+                                WHERE UMR.researcher_orcid_id = ?`).all(researcher.orcid_id);
+                        
+                        if (subscriptionsToNotify.length > 0) {
+                            console.log(`  -> Enviando notificações push para ${subscriptionsToNotify.length} inscrição(ões)...`);
+                            for (const subscription of subscriptionsToNotify) {
+                                sendPushNotification(JSON.parse(subscription.subscription_json), researcher.name, newPublications as any);
+                            }
+                        }
                     } else {
                         console.log(`  -> Hash diferente, mas sem novas publicações encontradas. Apenas atualizando o hash.`);
                         db.prepare('UPDATE Researchers SET hash_trabalhos = ? WHERE orcid_id = ?').run(newHash, researcher.orcid_id);

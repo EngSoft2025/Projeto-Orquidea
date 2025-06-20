@@ -7,6 +7,13 @@ CREATE TABLE Users (
     email TEXT NOT NULL UNIQUE
 );
 
+CREATE TABLE UserPushSubscriptions (
+    user_id INTEGER NOT NULL,
+    subscription_json TEXT NOT NULL,
+    PRIMARY KEY (user_id, subscription_json),
+    FOREIGN KEY (user_id) REFERENCES Users(id) ON DELETE CASCADE
+);
+
 -- Tabela para Pesquisadores
 CREATE TABLE Researchers (
     orcid_id TEXT PRIMARY KEY,
