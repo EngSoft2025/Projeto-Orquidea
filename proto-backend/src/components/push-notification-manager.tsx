@@ -96,6 +96,31 @@ export function PushNotificationManager({
     await unsubscribeUser(email);
   }
 
+  async function sendTestPush() {
+    const email = currentUser?.email;
+    if (!email) {
+      console.error("User email is required to send a test push notification.");
+      return;
+    }
+
+    if (!subscription) {
+      console.error("No push subscription found.");
+      return;
+    }
+
+    await fetch("/api/push/test", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        userEmail: email,
+        subscription,
+        title: "Teste de Notificação",
+      }),
+    });
+  }
+
   if (!isSupported) {
     return <p>Push notifications are not supported in this browser.</p>;
   }
@@ -104,9 +129,13 @@ export function PushNotificationManager({
     <div>
       {currentUser && isSupported ? (
         subscription ? (
-          <Button onClick={unsubscribeFromPush}>
-            Cancelar notificações push
-          </Button>
+          <>
+            <Button onClick={unsubscribeFromPush} variant="destructive">
+              Cancelar notificações push
+            </Button>
+
+            <Button onClick={sendTestPush}>Enviar notificação teste</Button>
+          </>
         ) : (
           <Button onClick={subscribeToPush}>Assinar notificações push</Button>
         )
