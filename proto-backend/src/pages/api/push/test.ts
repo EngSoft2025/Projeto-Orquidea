@@ -30,7 +30,7 @@ export default async function handler(
         .json({ error: "Id de usuário e inscrição são obrigatórios." });
     }
 
-    await sendPushNotification(subscription, title, [userEmail]);
+    await sendPushNotification(subscription, title);
 
     return res.status(200).json({});
   } catch (error) {

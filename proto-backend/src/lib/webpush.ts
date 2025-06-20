@@ -10,7 +10,6 @@ webpush.setVapidDetails(
 export async function sendPushNotification(
   subscription: webpush.PushSubscription,
   researcherName: string,
-  newPublicationCount: number
 ) {
   try {
     const title = `Novas publicações de ${researcherName}`;

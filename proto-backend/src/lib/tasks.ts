@@ -126,7 +126,7 @@ export async function checkAllResearchersForUpdates() {
                         if (subscriptionsToNotify.length > 0) {
                             console.log(`  -> Enviando notificações push para ${subscriptionsToNotify.length} inscrição(ões)...`);
                             for (const subscription of subscriptionsToNotify) {
-                                sendPushNotification(JSON.parse(subscription.subscription_json), researcher.name, newPublications as any);
+                                sendPushNotification(JSON.parse(subscription.subscription_json), researcher.name);
                             }
                         }
                     } else {
