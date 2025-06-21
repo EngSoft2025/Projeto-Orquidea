@@ -24,7 +24,6 @@ Nosso trabalho tem como objetivo principal criar uma ferramenta que facilite o u
 
 O projeto conta com três funcionalidades principais:
 
-----------COLOCAR IMAGENS PARA CADA FUNCIONALIDADE----------
 ### 3.1 Busca
 
 Nosso sistema de buscas é uma melhoria direta da busca presente nativamente no ORCID, ela permite que o usuário encontre com facilidade pesquisadores desejados e possa olhar seu perfil e publicações, como nas imagens:
