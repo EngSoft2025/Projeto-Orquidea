@@ -14,8 +14,10 @@ import SearchBar from "@/components/search/SearchBar";
 import FeatureCard from "@/components/home/FeatureCard";
 import StatCard from "@/components/home/StatCard";
 import Layout from "@/components/layout/Layout";
+import { useRouter } from 'next/router';
 
 export default function Index() {
+  const router = useRouter();
   const [activeTab, setActiveTab] = useState(0);
 
   const features = [
@@ -39,6 +41,10 @@ export default function Index() {
     },
   ];
 
+  const onSearch = (query: string) => {
+    router.push(`/search?query=${encodeURIComponent(query)}`);
+  } 
+
   return (
     <Layout>
       {/* Hero Section */}
@@ -54,7 +60,7 @@ export default function Index() {
               publicações e citações em tempo real.
             </p>
             <div className="mb-8">
-              <SearchBar />
+              <SearchBar  onSearch={onSearch}/>
             </div>
             <div className="flex flex-col sm:flex-row justify-center gap-4">
               <Button size="lg" asChild>

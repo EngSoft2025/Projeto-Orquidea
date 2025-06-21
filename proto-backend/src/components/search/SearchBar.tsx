@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -11,12 +11,17 @@ import {
 } from "@/components/ui/select";
 
 interface SearchBarProps {
+  searchQuery?: string;
   onSearch?: (query: string, type: string) => void;
 }
 
-export default function SearchBar({ onSearch }: SearchBarProps) {
-  const [searchQuery, setSearchQuery] = useState("");
+export default function SearchBar({ searchQuery: parentSearchQuery, onSearch }: SearchBarProps) {
+  const [searchQuery, setSearchQuery] = useState(parentSearchQuery || "");
   const [searchType, setSearchType] = useState("researcher");
+
+  useEffect(() => {
+    setSearchQuery(parentSearchQuery || "");
+  }, [parentSearchQuery]);
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
