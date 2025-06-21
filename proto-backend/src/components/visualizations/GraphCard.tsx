@@ -102,7 +102,7 @@ export default function GraphCard({ title, type, data, className }: GraphCardPro
           <CardTitle className="text-lg">{title}</CardTitle>
         </div>
       </CardHeader>
-      <CardContent>
+      <CardContent className={data.length === 0 ? "opacity-0" : ""}>
         {renderGraph()}
       </CardContent>
     </Card>
