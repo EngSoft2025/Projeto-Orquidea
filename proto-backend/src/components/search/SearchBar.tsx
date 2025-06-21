@@ -26,19 +26,6 @@ export default function SearchBar({ onSearch }: SearchBarProps) {
   return (
     <form onSubmit={handleSearch} className="w-full">
       <div className="flex flex-col md:flex-row gap-3">
-        <div className="w-full md:w-[180px]">
-          <Select value={searchType} onValueChange={setSearchType}>
-            <SelectTrigger className="bg-white dark:bg-gray-900">
-              <SelectValue placeholder="Buscar por" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="researcher">Pesquisador</SelectItem>
-              <SelectItem value="publication">Publicação</SelectItem>
-              <SelectItem value="institution">Instituição</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-
         <div className="relative flex-grow">
           <Input
             value={searchQuery}
