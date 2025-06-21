@@ -62,7 +62,7 @@ export default function MonitorCard({ id, name, institution, onRemove }: Monitor
               <AlertDialogHeader>
                 <AlertDialogTitle>Você tem certeza?</AlertDialogTitle>
                 <AlertDialogDescription>
-                  Esta ação removerá permanentemente **{name}** da sua lista de monitoramento. Você não receberá mais notificações sobre este pesquisador.
+                  Esta ação removerá permanentemente <b>{name}</b> da sua lista de monitoramento. Você não receberá mais notificações sobre este pesquisador.
                 </AlertDialogDescription>
               </AlertDialogHeader>
               <AlertDialogFooter>
