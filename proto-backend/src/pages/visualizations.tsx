@@ -22,35 +22,223 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import GraphCard from "@/components/visualizations/GraphCard";
 import Layout from "@/components/layout/Layout";
 
-// Mock data
-const citationsData = [
-  { name: "2018", value: 34 },
-  { name: "2019", value: 45 },
-  { name: "2020", value: 67 },
-  { name: "2021", value: 89 },
-  { name: "2022", value: 103 },
-  { name: "2023", value: 128 },
-];
+// -- Type definition
+type PublicationData = {
+  name: string; // year
+  value: number; // number of publications
+};
 
-const publicationsData = [
-  { name: "2018", value: 7 },
-  { name: "2019", value: 9 },
-  { name: "2020", value: 12 },
-  { name: "2021", value: 8 },
-  { name: "2022", value: 15 },
-  { name: "2023", value: 11 },
-];
+// -- Fetch function
+async function getPublicationsDataByYear(orcidId: string): Promise<PublicationData[]> {
+  try {
+    const res = await fetch(`https://pub.orcid.org/v3.0/${orcidId}/works`, {
+      headers: {
+        Accept: "application/json",
+      },
+    });
 
-const areasData = [
-  { name: "Física Quântica", value: 45 },
-  { name: "Computação Quântica", value: 30 },
-  { name: "Nanotecnologia", value: 15 },
-  { name: "Óptica Quântica", value: 10 },
-];
+    if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
+    const data = await res.json();
+    const groups = data.group || [];
+    const yearCountMap: Record<string, number> = {};
+
+    groups.forEach((group: any) => {
+      const workSummary = group["work-summary"]?.[0];
+      const year = workSummary?.["publication-date"]?.year?.value;
+      if (year) yearCountMap[year] = (yearCountMap[year] || 0) + 1;
+    });
+
+    return Object.entries(yearCountMap)
+      .map(([year, count]) => ({ name: year, value: count }))
+      .sort((a, b) => parseInt(a.name) - parseInt(b.name));
+  } catch (error) {
+    console.error("Failed to fetch ORCID data", error);
+    return [];
+  }
+}
+
+
+type CitationData = {
+  name: string; // year
+  value: number; // total citations that year
+};
+
+export async function getDoisFromOrcid(orcidId: string): Promise<string[]> {
+  try {
+    const res = await fetch(`https://pub.orcid.org/v3.0/${orcidId}/works`, {
+      headers: {
+        Accept: "application/json",
+      },
+    });
+
+    if (!res.ok) throw new Error(`ORCID API error: ${res.status}`);
+    const data = await res.json();
+    const groups = data.group || [];
+
+    const dois: string[] = [];
+
+    groups.forEach((group: any) => {
+      const workSummary = group["work-summary"]?.[0];
+      const ids = workSummary?.["external-ids"]?.["external-id"];
+
+      ids?.forEach((id: any) => {
+        if (id["external-id-type"] === "doi") {
+          const doi = id["external-id-value"];
+          if (doi) dois.push(doi.toLowerCase());
+        }
+      });
+    });
+
+    return dois;
+  } catch (error) {
+    console.error("Failed to fetch DOIs from ORCID", error);
+    return [];
+  }
+}
+
+export async function getCitationsByYearFromCrossref(doi: string): Promise<Record<string, number>> {
+  try {
+    const encodedDoi = encodeURIComponent(doi);
+    const res = await fetch(`https://opencitations.net/index/coci/api/v1/citations/${encodedDoi}`);
+
+    if (!res.ok) throw new Error(`OpenCitations error: ${res.status}`);
+    const data = await res.json();
+
+    const yearMap: Record<string, number> = {};
+
+    data.forEach((citation: any) => {
+      const year = citation?.citing_publication_date;
+      if (year) {
+        yearMap[year] = (yearMap[year] || 0) + 1;
+      }
+    });
+
+    return yearMap;
+  } catch (error) {
+    console.error(`Failed to fetch citation data for DOI: ${doi}`, error);
+    return {};
+  }
+}
+
+export async function getAggregatedCitationsByYearFromOrcid(orcidId: string): Promise<CitationData[]> {
+  const dois = await getDoisFromOrcid(orcidId);
+  const uniqueDois = [...new Set(dois)];
+  console.log(`Found ${uniqueDois.length} unique publications with DOIs.`);
+
+
+  // --- Step B: Fetch publication year and citation count for each DOI from Crossref ---
+  const crossrefPromises = uniqueDois.map((doi: string) =>
+    fetch(`https://api.crossref.org/works/${encodeURIComponent(doi)}`)
+    .then(res => res.ok ? res.json() : null)
+    .catch(err => {
+        console.error(`Error fetching DOI ${doi}:`, err);
+        return null; // Ignore errors for single DOIs
+    })
+  );
+  
+  // Wait for all Crossref requests to settle
+  const crossrefResults = await Promise.allSettled(crossrefPromises);
+  console.log('Fetched all data from Crossref.');
+
+
+  // --- Step C: Aggregate the data by publication year ---
+  const yearlyStats = new Map<number, number>(); // Map<year, totalCitations>
+
+  crossrefResults.forEach(result => {
+    // Check if the promise was fulfilled and we got a valid response
+    if (result.status === 'fulfilled' && result.value) {
+      const work = result.value.message;
+      const year = work.published?.['date-parts']?.[0]?.[0];
+      const citations = work['is-referenced-by-count'] || 0;
+
+      if (year) {
+        const currentCitations = yearlyStats.get(year) || 0;
+        yearlyStats.set(year, currentCitations + citations);
+      }
+    }
+  });
+
+  // --- Step D: Format the data into the desired structure and sort ---
+  const formattedData: ChartDataPoint[] = Array.from(yearlyStats.entries())
+    .map(([year, totalCitations]) => ({
+      name: String(year),
+      value: totalCitations,
+    }))
+    .sort((a, b) => parseInt(a.name) - parseInt(b.name)); // Sort chronologically
+
+  console.log('Data processing complete.');
+  return formattedData;
+}
 
 export default function Visualizations() {
   const [researcherId, setResearcherId] = useState("");
   const [visualization, setVisualization] = useState("overview");
+  const [publicationsData, setPublicationsData] = useState<PublicationData[]>([]);
+  const [citationsData, setCitationsData] = useState<CitationData[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const isValidOrcidFormat = (id: string): Promise<boolean> => {
+    // Return false if the input is null, undefined, or not a string
+    if (!id) {
+      return false;
+    }
+  
+    // The core pattern for an ORCID iD is 4 groups of 4 characters,
+    // separated by hyphens. The last character can be a digit or 'X'.
+    const orcidPattern = /^(\d{4}-){3}\d{3}[\dX]$/;
+  
+    let potentialId = id;
+  
+    // If the ID is a URL, extract the ID part from the end.
+    const urlPrefix = "https://orcid.org/";
+    if (potentialId.startsWith(urlPrefix)) {
+      potentialId = potentialId.substring(urlPrefix.length);
+    }
+  
+    // Test the potential ID against the regular expression.
+    return orcidPattern.test(potentialId);
+  };
+  const handleGenerateClick = async () => {
+    if (!researcherId) {
+      setError("Por favor, insira um ID ORCID do pesquisador.");
+      return;
+    }
+
+    if(isValidOrcidFormat(researcherId) == false) {
+      console.log("dentro");
+      setError("Por favor, insira um ID ORCID válido");
+      return;
+    }
+  
+    setIsLoading(true);
+    setError(null);
+    
+    // Clear previous results
+    setPublicationsData([]);
+    setCitationsData([]);
+  
+    try {
+      // Call both your data fetching functions at the same time
+      const [pubs, cites] = await Promise.all([
+        getPublicationsDataByYear(researcherId),
+        getAggregatedCitationsByYearFromOrcid(researcherId)
+      ]);
+  
+      setPublicationsData(pubs);
+      setCitationsData(cites);
+  
+      if (pubs.length === 0 && cites.length === 0) {
+          setError("Nenhum dado encontrado para este ORCID. Verifique o ID e tente novamente.");
+      }
+  
+    } catch (err) {
+      console.error("Failed to fetch visualization data", err);
+      setError("Ocorreu um erro ao buscar os dados. Por favor, tente novamente.");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
 
   return (
     <Layout>
@@ -59,14 +247,14 @@ export default function Visualizations() {
 
         <Card className="mb-8 border border-border/50">
           <CardContent className="p-6">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="gap-6">
               <div className="col-span-2">
                 <label className="block text-sm font-medium mb-2">
-                  Pesquisador ou Instituição
+                    Pesquisador
                 </label>
                 <div className="relative">
                   <Input
-                    placeholder="Digite o nome do pesquisador ou ID ORCID..."
+                    placeholder="Digite o ID ORCID do pesquisador..."
                     className="pl-10"
                     value={researcherId}
                     onChange={(e) => setResearcherId(e.target.value)}
@@ -74,27 +262,14 @@ export default function Visualizations() {
                   <User className="absolute left-3 top-2.5 h-5 w-5 text-muted-foreground pointer-events-none" />
                 </div>
               </div>
-              <div>
-                <label className="block text-sm font-medium mb-2">
-                  Tipo de Visualização
-                </label>
-                <Select value={visualization} onValueChange={setVisualization}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Selecionar visualização" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="overview">Visão Geral</SelectItem>
-                    <SelectItem value="citations">Citações</SelectItem>
-                    <SelectItem value="collaborations">Colaborações</SelectItem>
-                    <SelectItem value="institutions">Instituições</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
             </div>
 
-            <div className="flex justify-end mt-4">
-              <Button>Gerar Visualizações</Button>
+            <div className="mt-4">
+              <Button onClick={handleGenerateClick} disabled={isLoading}>
+                {isLoading ? "Gerando..." : "Gerar Visualizações"}
+              </Button>
             </div>
+                <p style={{ color: 'red' }}>{error}</p>
           </CardContent>
         </Card>
 
@@ -109,40 +284,6 @@ export default function Visualizations() {
           </TabsList>
 
           <TabsContent value="charts" className="mt-0">
-            <div className="flex flex-col md:flex-row md:items-center md:justify-end gap-3 mb-6">
-              <div className="flex items-center gap-2">
-                <Filter className="h-5 w-5 text-muted-foreground" />
-                <Select defaultValue="all">
-                  <SelectTrigger className="w-[180px] h-9">
-                    <SelectValue placeholder="Filtrar por período" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">Todo período</SelectItem>
-                    <SelectItem value="5-years">Últimos 5 anos</SelectItem>
-                    <SelectItem value="3-years">Últimos 3 anos</SelectItem>
-                    <SelectItem value="year">Último ano</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div className="flex gap-2">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="flex items-center gap-1"
-                >
-                  <Download className="h-4 w-4" /> Exportar
-                </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="flex items-center gap-1"
-                >
-                  <Share2 className="h-4 w-4" /> Compartilhar
-                </Button>
-              </div>
-            </div>
-
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
               <GraphCard
                 title="Publicações por Ano"
@@ -150,14 +291,9 @@ export default function Visualizations() {
                 data={publicationsData}
               />
               <GraphCard
-                title="Citações por Ano"
+                title="Citações por Ano de Publicação"
                 type="line"
                 data={citationsData}
-              />
-              <GraphCard
-                title="Distribuição por Área"
-                type="pie"
-                data={areasData}
               />
               <Card className="border border-border/50">
                 <CardContent className="p-6">
@@ -168,7 +304,7 @@ export default function Visualizations() {
                         <BookOpen className="h-5 w-5 text-primary" />
                         <h4 className="font-medium">Publicações</h4>
                       </div>
-                      <p className="text-3xl font-bold">62</p>
+                      <p className="text-3xl font-bold">{publicationsData.reduce((total, year) => total + year.value, 0)}</p>
                       <p className="text-sm text-muted-foreground">
                         Total de publicações
                       </p>
@@ -178,27 +314,9 @@ export default function Visualizations() {
                         <BarChart3 className="h-5 w-5 text-primary" />
                         <h4 className="font-medium">Citações</h4>
                       </div>
-                      <p className="text-3xl font-bold">466</p>
+                      <p className="text-3xl font-bold">{citationsData.reduce((total, year) => total + year.value, 0)}</p>
                       <p className="text-sm text-muted-foreground">
                         Total de citações
-                      </p>
-                    </div>
-                    <div className="bg-secondary/50 p-4 rounded-md">
-                      <div className="flex items-center gap-3 mb-2">
-                        <User className="h-5 w-5 text-primary" />
-                        <h4 className="font-medium">h-index</h4>
-                      </div>
-                      <p className="text-3xl font-bold">28</p>
-                      <p className="text-sm text-muted-foreground">Índice h</p>
-                    </div>
-                    <div className="bg-secondary/50 p-4 rounded-md">
-                      <div className="flex items-center gap-3 mb-2">
-                        <Network className="h-5 w-5 text-primary" />
-                        <h4 className="font-medium">Colaboradores</h4>
-                      </div>
-                      <p className="text-3xl font-bold">37</p>
-                      <p className="text-sm text-muted-foreground">
-                        Total de coautores
                       </p>
                     </div>
                   </div>

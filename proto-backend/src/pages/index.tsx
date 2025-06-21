@@ -18,41 +18,23 @@ import Layout from "@/components/layout/Layout";
 export default function Index() {
   const [activeTab, setActiveTab] = useState(0);
 
-  const stats = [
-    {
-      title: "Pesquisadores",
-      value: "15.243",
-      icon: <User className="h-5 w-5" />,
-    },
-    {
-      title: "Publicações",
-      value: "257.892",
-      icon: <BookOpen className="h-5 w-5" />,
-    },
-    {
-      title: "Notificações",
-      value: "1.372",
-      icon: <Bell className="h-5 w-5" />,
-    },
-  ];
-
   const features = [
     {
-      title: "Busca Avançada",
+      title: "Busca de Pesquisadores",
       description:
-        "Encontre pesquisadores e publicações utilizando filtros personalizados.",
+        "Encontre o perfil ORCID de pesquisadores buscando por seu nome.",
       icon: <Search className="h-6 w-6" />,
     },
     {
       title: "Monitoramento",
       description:
-        "Receba atualizações quando houver mudanças nos perfis monitorados.",
+        "Receba atualizações via e-mail quando houverem mudanças nos perfis monitorados.",
       icon: <Bell className="h-6 w-6" />,
     },
     {
       title: "Visualizações",
       description:
-        "Explore dados acadêmicos através de gráficos e visualizações interativas.",
+        "Explore dados acadêmicos através de gráficos e visualizações variados, unindo dados do ORCID e do crossref.",
       icon: <BarChart3 className="h-6 w-6" />,
     },
   ];
@@ -82,22 +64,6 @@ export default function Index() {
                 <Link href="/auth">Criar Conta</Link>
               </Button>
             </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Stats Section */}
-      <section className="py-12 bg-background">
-        <div className="container px-4 mx-auto">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {stats.map((stat, index) => (
-              <StatCard
-                key={index}
-                title={stat.title}
-                value={stat.value}
-                icon={stat.icon}
-              />
-            ))}
           </div>
         </div>
       </section>
@@ -135,107 +101,6 @@ export default function Index() {
         </div>
       </section>
 
-      {/* Info Tabs Section */}
-      <section className="py-16 bg-background">
-        <div className="container px-4 mx-auto">
-          <div className="max-w-3xl mx-auto">
-            <h2 className="text-2xl font-bold mb-6 text-center">
-              Como Funciona
-            </h2>
-
-            <div className="bg-white dark:bg-gray-900 rounded-lg shadow-sm border border-border mb-6">
-              <div className="flex overflow-x-auto">
-                {["Busca", "Monitoramento", "Visualizações"].map(
-                  (tab, index) => (
-                    <button
-                      key={index}
-                      className={`flex-1 p-4 text-center border-b-2 ${
-                        activeTab === index
-                          ? "border-primary text-primary font-medium"
-                          : "border-transparent text-muted-foreground"
-                      }`}
-                      onClick={() => setActiveTab(index)}
-                    >
-                      {tab}
-                    </button>
-                  )
-                )}
-              </div>
-
-              <div className="p-6">
-                {activeTab === 0 && (
-                  <div className="space-y-4">
-                    <h3 className="text-lg font-medium">
-                      Busque por pesquisadores ou publicações
-                    </h3>
-                    <p>
-                      Utilize nossa busca avançada para encontrar pesquisadores
-                      por nome, instituição ou área de atuação. Refine seus
-                      resultados com filtros específicos como tipo de
-                      publicação, ano e operadores lógicos (AND/OR).
-                    </p>
-                    <div className="mt-4">
-                      <Link
-                        href="/search"
-                        className="text-primary hover:underline flex items-center"
-                      >
-                        Ir para a busca <ArrowRight className="h-4 w-4 ml-1" />
-                      </Link>
-                    </div>
-                  </div>
-                )}
-
-                {activeTab === 1 && (
-                  <div className="space-y-4">
-                    <h3 className="text-lg font-medium">
-                      Monitore atualizações em tempo real
-                    </h3>
-                    <p>
-                      Acompanhe mudanças nos perfis dos pesquisadores, incluindo
-                      novas publicações, citações e atualizações acadêmicas.
-                      Configure alertas personalizados para receber notificações
-                      quando houver alterações relevantes.
-                    </p>
-                    <div className="mt-4">
-                      <Link
-                        href="/monitor"
-                        className="text-primary hover:underline flex items-center"
-                      >
-                        Configurar monitoramento{" "}
-                        <ArrowRight className="h-4 w-4 ml-1" />
-                      </Link>
-                    </div>
-                  </div>
-                )}
-
-                {activeTab === 2 && (
-                  <div className="space-y-4">
-                    <h3 className="text-lg font-medium">
-                      Explore visualizações interativas
-                    </h3>
-                    <p>
-                      Analise dados acadêmicos através de gráficos interativos,
-                      incluindo grafos de colaboração, redes de coautoria e
-                      distribuição de publicações por instituição. Obtenha
-                      insights valiosos sobre tendências de pesquisa e
-                      colaborações.
-                    </p>
-                    <div className="mt-4">
-                      <Link
-                        href="/visualizations"
-                        className="text-primary hover:underline flex items-center"
-                      >
-                        Ver visualizações{" "}
-                        <ArrowRight className="h-4 w-4 ml-1" />
-                      </Link>
-                    </div>
-                  </div>
-                )}
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
 
       {/* CTA Section */}
       <section className="py-16 bg-primary text-primary-foreground">

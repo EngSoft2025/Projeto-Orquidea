@@ -37,7 +37,7 @@ export default function MonitorCard({ id, name, institution, onRemove }: Monitor
           </Link>
           <div className="flex flex-wrap gap-1.5">
             <Badge variant="secondary" className="text-xs">
-              {institution || "Instituição não informada"}
+              {id || "ORCID não informado"}
             </Badge>
           </div>
         </div>
