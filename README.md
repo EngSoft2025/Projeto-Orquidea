@@ -10,7 +10,7 @@ Documentação para a realização do Trabalho da Disciplina SCC0130 - Engenhari
 | Andrey Cortez Rufino | 11819487
 | Antônio Italo Lima Lopes | 12542290
 | Gabriel Martins Monteiro | 14572099
-| Jean | 
+| Jean Patrick Ngandu Mamani | 14712678
 
 ## 1. Introdução
 
