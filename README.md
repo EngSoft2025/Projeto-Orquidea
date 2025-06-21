@@ -1,40 +1,40 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/pages/api-reference/create-next-app).
+# Trabalho ORCID
 
-## Getting Started
+Documentação para a realização do Trabalho da Disciplina SCC0130 - Engenharia de Software, ministrada pelo Prof. Dr. Seiji Isotani.
 
-First, run the development server:
+### Grupo: Um time aí
 
-```bash
-npm run dev
-```
+| NOME | NUSP |
+|------|------|
+| Hélio Márcio Cabral Santos | 14577862 |
+| Andrey Cortez Rufino | 11819487
+| Antônio Italo Lima Lopes | 12542290
+| Gabriel Martins Monteiro | 14572099
+| Jean | 
 
-Then run the scheduler 
+## 1. Introdução
 
-```bash
-npm run scheduler
-```
+O projeto Orquidea foi desenvolvido usando o método kanban, usando o próprio quadro disponivel no github (é possível acompanhar na página de projetos) e a interação entre os membros do grupo foi feita de forma assíncrona. Usamos os relatos de 3 diferentes professores como fonte de inspiração de quais problemas deveriamos buscar resolver, conforme descrito no documentos do projeto.
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## 2. Objetivo
 
-You can start editing the page by modifying `pages/index.tsx`. The page auto-updates as you edit the file.
+Nosso trabalho tem como objetivo principal criar uma ferramenta que facilite o uso do ORCID, com o principal foco da aplicação sendo facilitar a busca e visualização dos dados. Além disso, oferecemos tambem a possibilidade de acompanhar e receber notificações sempre que novas publicações dos pesquisadores desejados forem feitas.
 
-[API routes](https://nextjs.org/docs/pages/building-your-application/routing/api-routes) can be accessed on [http://localhost:3000/api/hello](http://localhost:3000/api/hello). This endpoint can be edited in `pages/api/hello.ts`.
+## 3. Funcionalidades
 
-The `pages/api` directory is mapped to `/api/*`. Files in this directory are treated as [API routes](https://nextjs.org/docs/pages/building-your-application/routing/api-routes) instead of React pages.
+O projeto conta com três funcionalidades principais:
 
-This project uses [`next/font`](https://nextjs.org/docs/pages/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+----------COLOCAR IMAGENS PARA CADA FUNCIONALIDADE----------
+### 3.1 Busca
 
-## Learn More
+Nosso sistema de buscas é uma melhoria direta da busca presente nativamente no ORCID, ela permite que o usuário encontre com facilidade pesquisadores desejados e possa olhar seu perfil e publicações, como nas imagens:
 
-To learn more about Next.js, take a look at the following resources:
+### 3.2 Monitoramento
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn-pages-router) - an interactive Next.js tutorial.
+O nosso sistema de monitoramento possibilita o acompanhamento das publicações de pesquisadores, enviando semanalmente para o email do usuário notificações sobre os pesquisadores desejados, conforme as imagens:
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+### 3.3 Visualização de dados
 
-## Deploy on Vercel
+O site conta ainda com um sistema de visualização de estatisticas para cada pesquisador, que mostra gráficos de citações e publicações por ano, além do número total delas, como mostrado das imagens a seguir:
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/pages/building-your-application/deploying) for more details.
+## 4.Build
