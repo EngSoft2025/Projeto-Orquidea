@@ -241,79 +241,77 @@ export default function Visualizations() {
 
 
   return (
-    <Layout>
-      <div className="container mx-auto px-4 py-8">
-        <h1 className="text-3xl font-bold mb-6">Visualizações</h1>
+    <div className="container mx-auto px-4 py-8">
+      <h1 className="text-3xl font-bold mb-6">Visualizações</h1>
 
-        <Card className="mb-8 border border-border/50">
-          <CardContent className="p-6">
-            <div className="gap-6">
-              <div className="col-span-2">
-                <label className="block text-sm font-medium mb-2">
-                    Pesquisador
-                </label>
-                <div className="relative">
-                  <Input
-                    placeholder="Digite o ID ORCID do pesquisador..."
-                    className="pl-10"
-                    value={researcherId}
-                    onChange={(e) => setResearcherId(e.target.value)}
-                  />
-                  <User className="absolute left-3 top-2.5 h-5 w-5 text-muted-foreground pointer-events-none" />
-                </div>
+      <Card className="mb-8 border border-border/50">
+        <CardContent className="p-6">
+          <div className="gap-6">
+            <div className="col-span-2">
+              <label className="block text-sm font-medium mb-2">
+                  Pesquisador
+              </label>
+              <div className="relative">
+                <Input
+                  placeholder="Digite o ID ORCID do pesquisador..."
+                  className="pl-10"
+                  value={researcherId}
+                  onChange={(e) => setResearcherId(e.target.value)}
+                />
+                <User className="absolute left-3 top-2.5 h-5 w-5 text-muted-foreground pointer-events-none" />
               </div>
             </div>
+          </div>
 
-            <div className="mt-4">
-              <Button onClick={handleGenerateClick} disabled={isLoading}>
-                {isLoading ? "Gerando..." : "Gerar Visualizações"}
-              </Button>
+          <div className="mt-4">
+            <Button onClick={handleGenerateClick} disabled={isLoading}>
+              {isLoading ? "Gerando..." : "Gerar Visualizações"}
+            </Button>
+          </div>
+              <p style={{ color: 'red' }}>{error}</p>
+        </CardContent>
+      </Card>
+
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+        <GraphCard
+          title="Publicações por Ano"
+          type="bar"
+          data={publicationsData}
+        />
+        <GraphCard
+          title="Citações por Ano de Publicação"
+          type="line"
+          data={citationsData}
+        />
+        <Card className="border border-border/50">
+          <CardContent className="p-6">
+            <h3 className="text-lg font-medium mb-4">Estatísticas</h3>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="bg-secondary/50 p-4 rounded-md">
+                <div className="flex items-center gap-3 mb-2">
+                  <BookOpen className="h-5 w-5 text-primary" />
+                  <h4 className="font-medium">Publicações</h4>
+                </div>
+                <p className="text-3xl font-bold">{publicationsData.reduce((total, year) => total + year.value, 0)}</p>
+                <p className="text-sm text-muted-foreground">
+                  Total de publicações
+                </p>
+              </div>
+              <div className="bg-secondary/50 p-4 rounded-md">
+                <div className="flex items-center gap-3 mb-2">
+                  <BarChart3 className="h-5 w-5 text-primary" />
+                  <h4 className="font-medium">Citações</h4>
+                </div>
+                <p className="text-3xl font-bold">{citationsData.reduce((total, year) => total + year.value, 0)}</p>
+                <p className="text-sm text-muted-foreground">
+                  Total de citações
+                </p>
+              </div>
             </div>
-                <p style={{ color: 'red' }}>{error}</p>
           </CardContent>
         </Card>
-
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-          <GraphCard
-            title="Publicações por Ano"
-            type="bar"
-            data={publicationsData}
-          />
-          <GraphCard
-            title="Citações por Ano de Publicação"
-            type="line"
-            data={citationsData}
-          />
-          <Card className="border border-border/50">
-            <CardContent className="p-6">
-              <h3 className="text-lg font-medium mb-4">Estatísticas</h3>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div className="bg-secondary/50 p-4 rounded-md">
-                  <div className="flex items-center gap-3 mb-2">
-                    <BookOpen className="h-5 w-5 text-primary" />
-                    <h4 className="font-medium">Publicações</h4>
-                  </div>
-                  <p className="text-3xl font-bold">{publicationsData.reduce((total, year) => total + year.value, 0)}</p>
-                  <p className="text-sm text-muted-foreground">
-                    Total de publicações
-                  </p>
-                </div>
-                <div className="bg-secondary/50 p-4 rounded-md">
-                  <div className="flex items-center gap-3 mb-2">
-                    <BarChart3 className="h-5 w-5 text-primary" />
-                    <h4 className="font-medium">Citações</h4>
-                  </div>
-                  <p className="text-3xl font-bold">{citationsData.reduce((total, year) => total + year.value, 0)}</p>
-                  <p className="text-sm text-muted-foreground">
-                    Total de citações
-                  </p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
       </div>
-    </Layout>
+    </div>
   );
 }

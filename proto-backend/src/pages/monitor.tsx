@@ -90,44 +90,42 @@ export default function Monitor() {
   };
 
   // Telas de Carregamento e Não Logado (sem alterações)
-  if (isSessionLoading) { /* ... */ return <Layout><div className="container text-center py-20"><p>Verificando sua sessão...</p></div></Layout> }
-  if (!currentUser) { /* ... */ return <Layout><div className="container text-center py-20"><h2 className="text-2xl font-bold">Acesso Restrito</h2><p>Faça login para ver seus monitoramentos.</p><Button className="mt-4" onClick={() => router.push('/auth')}>Fazer Login</Button></div></Layout> }
+  if (isSessionLoading) { /* ... */ return <div className="container text-center py-20"><p>Verificando sua sessão...</p></div>}
+  if (!currentUser) { /* ... */ return <div className="container text-center py-20"><h2 className="text-2xl font-bold">Acesso Restrito</h2><p>Faça login para ver seus monitoramentos.</p><Button className="mt-4" onClick={() => router.push('/auth')}>Fazer Login</Button></div> }
 
   // --- Renderização Principal ---
   return (
-    <Layout>
-      <div className="container mx-auto px-4 py-8">
-        <div className="flex items-center justify-between gap-4 mb-8">
-          <h1 className="text-3xl font-bold">Pesquisadores Monitorados</h1>
-        </div>
-
-        <PushNotificationManager currentUser={currentUser} />
-
-        {isDataLoading ? (
-          <div className="text-center py-12"><p className="text-lg">Buscando seus pesquisadores...</p></div>
-        ) : monitoredData.length > 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {monitoredData.map((researcher) => (
-              // --- ALTERADO AQUI: Passando as novas props e a função onRemove ---
-              <MonitorCard
-                key={researcher.orcid_id}
-                id={researcher.orcid_id}
-                name={researcher.name}
-                institution={researcher.institution} // Vem da nossa API (atualmente um placeholder)
-                onRemove={handleRemoveResearcher} // Passando a função de remoção
-              />
-            ))}
-          </div>
-        ) : (
-          <div className="text-center py-12 bg-secondary/50 rounded-lg">
-            <h3 className="text-lg font-medium mb-2">Nenhum pesquisador monitorado</h3>
-            <p className="text-muted-foreground mb-4">Encontre pesquisadores para começar a acompanhar.</p>
-            <Button onClick={() => router.push('/search')}>
-              <Search className="h-4 w-4 mr-2" /> Procurar Pesquisadores
-            </Button>
-          </div>
-        )}
+    <div className="container mx-auto px-4 py-8">
+      <div className="flex items-center justify-between gap-4 mb-8">
+        <h1 className="text-3xl font-bold">Pesquisadores Monitorados</h1>
       </div>
-    </Layout>
+
+      <PushNotificationManager currentUser={currentUser} />
+
+      {isDataLoading ? (
+        <div className="text-center py-12"><p className="text-lg">Buscando seus pesquisadores...</p></div>
+      ) : monitoredData.length > 0 ? (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {monitoredData.map((researcher) => (
+            // --- ALTERADO AQUI: Passando as novas props e a função onRemove ---
+            <MonitorCard
+              key={researcher.orcid_id}
+              id={researcher.orcid_id}
+              name={researcher.name}
+              institution={researcher.institution} // Vem da nossa API (atualmente um placeholder)
+              onRemove={handleRemoveResearcher} // Passando a função de remoção
+            />
+          ))}
+        </div>
+      ) : (
+        <div className="text-center py-12 bg-secondary/50 rounded-lg">
+          <h3 className="text-lg font-medium mb-2">Nenhum pesquisador monitorado</h3>
+          <p className="text-muted-foreground mb-4">Encontre pesquisadores para começar a acompanhar.</p>
+          <Button onClick={() => router.push('/search')}>
+            <Search className="h-4 w-4 mr-2" /> Procurar Pesquisadores
+          </Button>
+        </div>
+      )}
+    </div>
   );
 }

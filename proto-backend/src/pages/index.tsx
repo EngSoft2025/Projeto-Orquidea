@@ -46,7 +46,7 @@ export default function Index() {
   } 
 
   return (
-    <Layout>
+    <>
       {/* Hero Section */}
       <section className="gradient-bg py-16 md:py-24">
         <div className="container px-4 mx-auto">
@@ -130,6 +130,6 @@ export default function Index() {
           </div>
         </div>
       </section>
-    </Layout>
+    </>
   );
 }

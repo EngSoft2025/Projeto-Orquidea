@@ -133,18 +133,16 @@ export default function Search() {
   };
 
   return (
-    <Layout>
-      <div className="container mx-auto px-4 py-8">
-        <h1 className="text-3xl font-bold mb-6 text-center">
-          Busca de Pesquisadores
-        </h1>
+    <div className="container mx-auto px-4 py-8">
+      <h1 className="text-3xl font-bold mb-6 text-center">
+        Busca de Pesquisadores
+      </h1>
 
-        <div className="mb-8 max-w-2xl mx-auto">
-          <SearchBar searchQuery={searchQuery} onSearch={onSearch} />
-        </div>
-
-        <SearchResults searchQuery={searchQuery} />
+      <div className="mb-8 max-w-2xl mx-auto">
+        <SearchBar searchQuery={searchQuery} onSearch={onSearch} />
       </div>
-    </Layout>
+
+      <SearchResults searchQuery={searchQuery} />
+    </div>
   );
 }

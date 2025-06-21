@@ -8,6 +8,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner"; // Renomeado para evitar conflito
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { ThemeProvider } from "@/components/theme-provider";
+import Layout from "@/components/layout/Layout";
 
 // Extraia pageProps e a sessão das props do App
 export default function App({ Component, pageProps: { session, ...pageProps } }: AppProps) {
@@ -18,7 +19,9 @@ export default function App({ Component, pageProps: { session, ...pageProps } }:
         <TooltipProvider>
           <Toaster />
           <Sonner /> {/* Manteve o nome Sonner para o segundo Toaster */}
-          <Component {...pageProps} />
+          <Layout>
+            <Component {...pageProps} />
+          </Layout>
         </TooltipProvider>
       </ThemeProvider>
     </SessionProvider>
