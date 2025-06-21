@@ -273,107 +273,46 @@ export default function Visualizations() {
           </CardContent>
         </Card>
 
-        <Tabs defaultValue="charts" className="mb-8">
-          <TabsList className="mb-6">
-            <TabsTrigger value="charts" className="flex items-center gap-2">
-              <BarChart3 className="h-4 w-4" /> Gráficos
-            </TabsTrigger>
-            <TabsTrigger value="network" className="flex items-center gap-2">
-              <Network className="h-4 w-4" /> Redes de Colaboração
-            </TabsTrigger>
-          </TabsList>
 
-          <TabsContent value="charts" className="mt-0">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-              <GraphCard
-                title="Publicações por Ano"
-                type="bar"
-                data={publicationsData}
-              />
-              <GraphCard
-                title="Citações por Ano de Publicação"
-                type="line"
-                data={citationsData}
-              />
-              <Card className="border border-border/50">
-                <CardContent className="p-6">
-                  <h3 className="text-lg font-medium mb-4">Estatísticas</h3>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div className="bg-secondary/50 p-4 rounded-md">
-                      <div className="flex items-center gap-3 mb-2">
-                        <BookOpen className="h-5 w-5 text-primary" />
-                        <h4 className="font-medium">Publicações</h4>
-                      </div>
-                      <p className="text-3xl font-bold">{publicationsData.reduce((total, year) => total + year.value, 0)}</p>
-                      <p className="text-sm text-muted-foreground">
-                        Total de publicações
-                      </p>
-                    </div>
-                    <div className="bg-secondary/50 p-4 rounded-md">
-                      <div className="flex items-center gap-3 mb-2">
-                        <BarChart3 className="h-5 w-5 text-primary" />
-                        <h4 className="font-medium">Citações</h4>
-                      </div>
-                      <p className="text-3xl font-bold">{citationsData.reduce((total, year) => total + year.value, 0)}</p>
-                      <p className="text-sm text-muted-foreground">
-                        Total de citações
-                      </p>
-                    </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+          <GraphCard
+            title="Publicações por Ano"
+            type="bar"
+            data={publicationsData}
+          />
+          <GraphCard
+            title="Citações por Ano de Publicação"
+            type="line"
+            data={citationsData}
+          />
+          <Card className="border border-border/50">
+            <CardContent className="p-6">
+              <h3 className="text-lg font-medium mb-4">Estatísticas</h3>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="bg-secondary/50 p-4 rounded-md">
+                  <div className="flex items-center gap-3 mb-2">
+                    <BookOpen className="h-5 w-5 text-primary" />
+                    <h4 className="font-medium">Publicações</h4>
                   </div>
-                </CardContent>
-              </Card>
-            </div>
-          </TabsContent>
-
-          <TabsContent value="network" className="mt-0">
-            <div className="text-center py-12 bg-secondary/50 rounded-lg">
-              <Network className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
-              <h3 className="text-xl font-medium mb-2">
-                Visualização de Rede de Colaboração
-              </h3>
-              <p className="text-muted-foreground max-w-md mx-auto mb-4">
-                Selecione um pesquisador e uma distância de conexão para
-                visualizar sua rede de colaboração.
-              </p>
-
-              <div className="flex flex-col sm:flex-row items-center justify-center gap-4 max-w-lg mx-auto mt-6">
-                <div className="w-full">
-                  <label className="block text-sm font-medium mb-2 text-left">
-                    Distância de Conexão
-                  </label>
-                  <Select defaultValue="1">
-                    <SelectTrigger>
-                      <SelectValue placeholder="Distância" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="1">1 passo</SelectItem>
-                      <SelectItem value="2">2 passos</SelectItem>
-                      <SelectItem value="3">3 passos</SelectItem>
-                    </SelectContent>
-                  </Select>
+                  <p className="text-3xl font-bold">{publicationsData.reduce((total, year) => total + year.value, 0)}</p>
+                  <p className="text-sm text-muted-foreground">
+                    Total de publicações
+                  </p>
                 </div>
-
-                <div className="w-full">
-                  <label className="block text-sm font-medium mb-2 text-left">
-                    Tipo de Conexão
-                  </label>
-                  <Select defaultValue="collaboration">
-                    <SelectTrigger>
-                      <SelectValue placeholder="Tipo" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="collaboration">Colaboração</SelectItem>
-                      <SelectItem value="citation">Citação</SelectItem>
-                      <SelectItem value="institution">Instituição</SelectItem>
-                    </SelectContent>
-                  </Select>
+                <div className="bg-secondary/50 p-4 rounded-md">
+                  <div className="flex items-center gap-3 mb-2">
+                    <BarChart3 className="h-5 w-5 text-primary" />
+                    <h4 className="font-medium">Citações</h4>
+                  </div>
+                  <p className="text-3xl font-bold">{citationsData.reduce((total, year) => total + year.value, 0)}</p>
+                  <p className="text-sm text-muted-foreground">
+                    Total de citações
+                  </p>
                 </div>
-
-                <Button className="w-full sm:self-end">Gerar Grafo</Button>
               </div>
-            </div>
-          </TabsContent>
-        </Tabs>
+            </CardContent>
+          </Card>
+        </div>
       </div>
     </Layout>
   );
