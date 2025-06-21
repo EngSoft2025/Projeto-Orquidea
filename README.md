@@ -38,3 +38,28 @@ O nosso sistema de monitoramento possibilita o acompanhamento das publicações 
 O site conta ainda com um sistema de visualização de estatisticas para cada pesquisador, que mostra gráficos de citações e publicações por ano, além do número total delas, como mostrado das imagens a seguir:
 
 ## 4.Build
+Para realizar a execução do projeto, basta seguir os seguintes passos:
+### 4.1 Enviroment
+Para a execução correta do projeto, dois arquivos iguais nomeados .env e .env.local devem estar na raíz do projeto.
+
+As variáveis que devem ser salvas nos arquvios .env e .env.local são:
+
+* GOOGLE_CLIENT_ID
+* GOOGLE_CLIENT_SECRET
+* NEXTAUTH_URL: A URL do site
+* NEXTAUTH_SECRET: Segredo gerando para assinar tokens JWT e cookies. Pode ser gerado com openssl rand -base64 32
+* NEXT_PUBLIC_APPWRITE_ENDPOINT
+* NEXT_PUBLIC_APPWRITE_PROJECT_ID
+* CRON_SECRET
+* RESEND_API_KEY
+* GMAIL_USER: Usuário usado pelo e-mail que envia notificações de monitoramento.
+* GMAIL_APP_PASSWORD: Senha do e-mail usado para o envio de notificações de monitoramento.
+* NEXT_PUBLIC_VAPID_PUBLIC_KEY: "Voluntary Application Server Identification" usada para o envio de notificações push.
+* VAPID_PRIVATE_KEY: Parte privada da VAPID. O par pode ser gerado pelo comando pnpm generate-vapid-keys.
+
+Essas configurações são importantes para funções diversas do app, como login com autenticação do google, envio de e-mails e envio de notificações push. Para exemplo e maior facilidade de execução durante a avaliação, nosso arquivo .env (e .env.local) foi enviado por e-mail ao professor e monitor.
+### 4.2 Database
+Entrar na pasta database e executar o comando "sqlite3 orquidea.db < scripts/create_db.sql".
+
+### 4.3 Final
+Em dois terminais distintos, primeiro execute "pnpm install", seguido de "pnpm dev" no mesmo terminal. Em um terminal distinto, execute "pnpm scheduler" para a execução do monitoramento de modificações. 
